@@ -63,10 +63,17 @@ class FFmpegRecorder extends EventEmitter {
     // Spawn FFmpeg process
     // Using spawn (not exec) to avoid buffering entire output in memory
     console.log('[FFmpegRecorder] Spawning FFmpeg process...');
+    // CRITICAL: Use 'pipe' for stdin to allow graceful shutdown with 'q' command
+    // This ensures WAV file header is properly written
     this.process = spawn(ffmpegPath, args, {
-      stdio: ['ignore', 'pipe', 'pipe'], // Ignore stdin, capture stdout/stderr
+      stdio: ['pipe', 'pipe', 'pipe'], // pipe stdin for 'q' command, capture stdout/stderr
       windowsHide: true, // Hide console window on Windows
     });
+    
+    // Keep stdin open for sending 'q' command later
+    if (this.process.stdin) {
+      this.process.stdin.setDefaultEncoding('utf8');
+    }
 
     console.log('[FFmpegRecorder] FFmpeg process spawned, PID:', this.process.pid);
 

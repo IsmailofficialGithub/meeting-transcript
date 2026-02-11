@@ -234,11 +234,18 @@ class IPCHandlers {
         const audioPath = files.audio;
         console.log('[IPC] Audio file path:', audioPath);
 
-        // Check if audio file exists
+        // Check if audio file exists and is valid
         const fs = require('fs');
         if (!fs.existsSync(audioPath)) {
           throw new Error(`Audio file not found: ${audioPath}`);
         }
+        
+        // Check file size - WAV files should be > 44 bytes (WAV header size)
+        const stats = fs.statSync(audioPath);
+        if (stats.size < 44) {
+          throw new Error(`Audio file is too small (${stats.size} bytes) - recording may have failed`);
+        }
+        console.log('[IPC] Audio file size:', stats.size, 'bytes');
 
         console.log('[IPC] Processing audio with Whisper...');
         
