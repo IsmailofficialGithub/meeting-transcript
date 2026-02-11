@@ -205,16 +205,15 @@ function App() {
               
               if (usingStereoMix) {
                 message += '⚠️ NO AUDIO CAPTURED\n\n';
-                message += 'FOR ZOOM:\n';
-                message += '1. In Zoom → Settings → Audio\n';
-                message += '2. Speaker: Select same device as Windows default\n';
-                message += '3. Uncheck "Use original sound"\n';
-                message += '4. Test: Play audio in Zoom meeting\n';
-                message += '5. If still silent, Zoom may block capture\n\n';
-                message += 'ALTERNATIVE:\n';
-                message += '• Ask participants to speak\n';
-                message += '• Use "Mine" button to record your voice\n';
-                message += '• Or use Zoom\'s built-in recording';
+                message += 'QUICK FIX:\n';
+                message += '1. Was audio playing during recording?\n';
+                message += '2. Can you hear the audio in your speakers/headphones?\n';
+                message += '3. Try recording while playing YouTube (test if Stereo Mix works)\n\n';
+                message += 'FOR ZOOM SPECIFICALLY:\n';
+                message += 'Zoom often blocks audio capture. Solutions:\n';
+                message += '• Download VoiceMeeter (free) - guaranteed to work\n';
+                message += '• Or use Zoom\'s built-in recording feature\n';
+                message += '• Or use "Mine" button (your voice only)';
               } else {
                 message += 'Enable "Stereo Mix":\n';
                 message += '1. Right-click speaker 🔊 → Sounds → Recording\n';
