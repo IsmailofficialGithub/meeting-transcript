@@ -81,22 +81,15 @@ function DeviceSelector({ devices, selectedDevices, onDeviceChange, onRefresh })
           </p>
           
           {devices.loopbacks?.length === 0 && (
-            <div className="mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-sm">
-              <p className="font-semibold text-yellow-800">No system audio devices found!</p>
-              <p className="text-yellow-700 mt-1">Enable "Stereo Mix" in Windows:</p>
-              <ol className="text-yellow-700 mt-1 ml-4 list-decimal text-xs space-y-1">
-                <li>Right-click speaker icon → Sounds → Recording tab</li>
-                <li>Right-click empty space → Show Disabled Devices</li>
-                <li>Find "Stereo Mix" → Right-click → Enable</li>
-                <li>Restart this app and click Refresh</li>
+            <div className="mt-2 p-3 bg-red-50 border-l-4 border-red-400 text-sm">
+              <p className="font-semibold text-red-800">Cannot capture system audio!</p>
+              <p className="text-red-700 mt-2">Quick fix (30 seconds):</p>
+              <ol className="text-red-700 mt-1 ml-4 list-decimal text-xs space-y-1">
+                <li>Right-click speaker 🔊 → Sounds → Recording</li>
+                <li>Right-click empty area → Show Disabled Devices</li>
+                <li>Right-click "Stereo Mix" → Enable</li>
+                <li>Click Refresh button above</li>
               </ol>
-            </div>
-          )}
-          
-          {selectedDevices.loopback?.toLowerCase().includes('cable') && (
-            <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
-              ⚠️ CABLE requires setting "CABLE Input" as default playback device.
-              <br />Use "Stereo Mix" instead for easier setup (no routing needed).
             </div>
           )}
         </div>

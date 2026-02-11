@@ -222,16 +222,13 @@ class FFmpegRecorder extends EventEmitter {
       const isCable = loopbackDevice.toLowerCase().includes('cable');
       const isStereoMix = loopbackDevice.toLowerCase().includes('stereo mix');
       
-      console.log('[FFmpegRecorder] Device:', loopbackDevice);
-      
       if (isStereoMix) {
-        console.log('[FFmpegRecorder] ✅ Stereo Mix detected - captures all system audio (Zoom, videos, etc.)');
-        console.log('[FFmpegRecorder] ✅ Works with headphones - no setup needed!');
+        console.log('[FFmpegRecorder] ✅ Using Stereo Mix - captures all audio (Zoom, videos, music)');
       } else if (isCable) {
-        console.warn('[FFmpegRecorder] ⚠️  CABLE Output needs routing! Use "Stereo Mix" instead (easier)');
-        console.warn('[FFmpegRecorder] ⚠️  For CABLE: Set "CABLE Input" as default playback device');
+        console.warn('[FFmpegRecorder] ⚠️  CABLE will be SILENT unless CABLE Input is default playback');
+        console.warn('[FFmpegRecorder] ⚠️  Enable Stereo Mix instead - works immediately!');
       } else {
-        console.log('[FFmpegRecorder] ℹ️  Using:', loopbackDevice);
+        console.log('[FFmpegRecorder] Using device:', loopbackDevice);
       }
     } else {
       // Both - mix them together

@@ -22,6 +22,7 @@ function App() {
   const [transcript, setTranscript] = useState(null);
   const [deviceError, setDeviceError] = useState(null);
   const [transcriptionStatus, setTranscriptionStatus] = useState(null); // 'processing', 'success', 'error'
+  const [autoDeleteAudio, setAutoDeleteAudio] = useState(true); // Auto-delete audio after transcription
 
   // Load devices on mount
   useEffect(() => {
@@ -54,13 +55,22 @@ function App() {
         setDevices(result.devices);
         setDeviceError(null);
         
-        // Set defaults
+        // Set defaults - prefer Stereo Mix for loopback
         const defaults = await window.electronAPI.devices.getDefaults();
         if (defaults.success) {
+          // Auto-select Stereo Mix if available (best for system audio)
+          const stereoMix = result.devices.loopbacks?.find(d => 
+            d.name.toLowerCase().includes('stereo mix')
+          );
+          
           setSelectedDevices({
             mic: defaults.defaults.microphone?.name || null,
-            loopback: defaults.defaults.loopback?.name || null,
+            loopback: stereoMix?.name || defaults.defaults.loopback?.name || null,
           });
+          
+          if (stereoMix) {
+            console.log('[App] Auto-selected Stereo Mix for system audio capture');
+          }
         }
       } else {
         setDeviceError(result.error || 'Failed to load devices');
@@ -175,28 +185,51 @@ function App() {
             setTranscript(transResult.transcript);
             setTranscriptionStatus('success');
             
+            // Always show the transcript even if it's silence
+            console.log('[App] Transcript received:', transResult.transcript?.text);
+            
             // Check if transcript is actually empty or just "Thank you" (Whisper's silence response)
             const text = transResult.transcript?.text?.trim() || '';
-            if (text.length === 0 || text.toLowerCase() === 'thank you.' || text.toLowerCase() === 'thank you') {
-              setTranscriptionStatus('error');
-              console.error('[App] ⚠️ SILENT AUDIO DETECTED - Transcript:', text);
-              alert('⚠️ NO AUDIO DETECTED\n\n' +
-                    'Recording is silent. Enable "Stereo Mix" (1 minute setup):\n\n' +
-                    '1. Right-click speaker icon → Sounds → Recording tab\n' +
-                    '2. Right-click empty space → Show Disabled Devices\n' +
-                    '3. Find "Stereo Mix" → Right-click → Enable\n' +
-                    '4. Restart app, select Stereo Mix\n\n' +
-                    'Then Zoom audio captures automatically (works with headphones)!');
-            } else {
-              // Auto-delete audio file if enabled (user only wants transcript)
-              if (autoDeleteAudio && currentMeeting?.id) {
-                console.log('[App] Auto-deleting audio file (keeping transcript)...');
-                try {
-                  await window.electronAPI.meetings.deleteAudio(currentMeeting.id);
-                  console.log('[App] Audio file deleted, transcript kept');
-                } catch (error) {
-                  console.warn('[App] Failed to auto-delete audio:', error);
-                }
+            const isSilence = text.length === 0 || text.toLowerCase() === 'thank you.' || text.toLowerCase() === 'thank you';
+            
+            if (isSilence) {
+              console.error('[App] ⚠️ SILENT AUDIO - No sound captured');
+              const usingStereoMix = selectedDevices.loopback?.toLowerCase().includes('stereo mix');
+              
+              let message = '⚠️ NO AUDIO CAPTURED\n\n';
+              
+              if (usingStereoMix) {
+                message += '⚠️ NO AUDIO CAPTURED\n\n';
+                message += 'FOR ZOOM:\n';
+                message += '1. In Zoom → Settings → Audio\n';
+                message += '2. Speaker: Select same device as Windows default\n';
+                message += '3. Uncheck "Use original sound"\n';
+                message += '4. Test: Play audio in Zoom meeting\n';
+                message += '5. If still silent, Zoom may block capture\n\n';
+                message += 'ALTERNATIVE:\n';
+                message += '• Ask participants to speak\n';
+                message += '• Use "Mine" button to record your voice\n';
+                message += '• Or use Zoom\'s built-in recording';
+              } else {
+                message += 'Enable "Stereo Mix":\n';
+                message += '1. Right-click speaker 🔊 → Sounds → Recording\n';
+                message += '2. Right-click empty area → Show Disabled Devices\n';
+                message += '3. Right-click "Stereo Mix" → Enable\n';
+                message += '4. Restart app\n\n';
+                message += 'Then play audio WHILE recording!';
+              }
+              
+              alert(message);
+            }
+            
+            // Auto-delete audio file if enabled (user only wants transcript)
+            if (autoDeleteAudio && currentMeeting?.id) {
+              console.log('[App] Auto-deleting audio file (keeping transcript)...');
+              try {
+                await window.electronAPI.meetings.deleteAudio(currentMeeting.id);
+                console.log('[App] Audio file deleted, transcript kept');
+              } catch (error) {
+                console.warn('[App] Failed to auto-delete audio:', error);
               }
             }
           } else {
