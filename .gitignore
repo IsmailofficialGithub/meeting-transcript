@@ -10,3 +10,4 @@ meetings/
 *~
 .env
 .env.local
+config.json
