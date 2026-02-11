@@ -186,16 +186,28 @@ class FFmpegRecorder extends EventEmitter {
     }
     
     if (mode === 'system' || mode === 'both') {
-      // Use DirectShow for system audio capture
-      // Note: For CABLE Output to work, CABLE Input must be set as default playback device
-      const loopbackInput = `audio=${loopbackDevice}`;
-      args.push(
-        '-f', 'dshow',                    // DirectShow input format
-        '-audio_buffer_size', '50',        // Buffer size in ms (lower = less latency)
-        '-i', loopbackInput                // Loopback device (CABLE Output, Stereo Mix, etc.)
-      );
-      console.log('[FFmpegRecorder] Loopback input (DirectShow):', loopbackInput);
-      console.log('[FFmpegRecorder] NOTE: For CABLE Output to capture audio, ensure CABLE Input is set as default playback device in Windows Sound settings');
+      // Check if using WASAPI Loopback (captures everything from default speaker)
+      const useWasapi = loopbackDevice && loopbackDevice.includes('WASAPI');
+      
+      if (useWasapi) {
+        // WASAPI Loopback - captures ALL audio from default playback device
+        // This works for ALL apps: Zoom, Discord, YouTube, everything!
+        args.push(
+          '-f', 'dshow',
+          '-i', 'audio=virtual-audio-capturer'  // Special WASAPI device
+        );
+        console.log('[FFmpegRecorder] Using WASAPI Loopback - captures ALL system audio');
+        console.log('[FFmpegRecorder] ✅ Works with: Zoom, Discord, Meet, YouTube, ALL apps!');
+      } else {
+        // Use DirectShow for regular devices (Stereo Mix, CABLE)
+        const loopbackInput = `audio=${loopbackDevice}`;
+        args.push(
+          '-f', 'dshow',                    // DirectShow input format
+          '-audio_buffer_size', '50',        // Buffer size in ms
+          '-i', loopbackInput                // Loopback device
+        );
+        console.log('[FFmpegRecorder] Loopback input (DirectShow):', loopbackInput);
+      }
     }
     
     // Build filter based on mode

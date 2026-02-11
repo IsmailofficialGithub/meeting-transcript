@@ -58,17 +58,22 @@ function App() {
         // Set defaults - prefer Stereo Mix for loopback
         const defaults = await window.electronAPI.devices.getDefaults();
         if (defaults.success) {
-          // Auto-select Stereo Mix if available (best for system audio)
+          // Auto-select WASAPI Loopback (best for all apps) or Stereo Mix
+          const wasapiLoopback = result.devices.loopbacks?.find(d => 
+            d.name.includes('WASAPI')
+          );
           const stereoMix = result.devices.loopbacks?.find(d => 
             d.name.toLowerCase().includes('stereo mix')
           );
           
           setSelectedDevices({
             mic: defaults.defaults.microphone?.name || null,
-            loopback: stereoMix?.name || defaults.defaults.loopback?.name || null,
+            loopback: wasapiLoopback?.name || stereoMix?.name || defaults.defaults.loopback?.name || null,
           });
           
-          if (stereoMix) {
+          if (wasapiLoopback) {
+            console.log('[App] Auto-selected WASAPI Loopback for universal system audio capture');
+          } else if (stereoMix) {
             console.log('[App] Auto-selected Stereo Mix for system audio capture');
           }
         }
